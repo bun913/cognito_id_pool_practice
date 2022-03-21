@@ -28,11 +28,10 @@ resource "aws_cognito_user_pool" "main" {
   tags = var.tags
 }
 
-/* resource "aws_cognito_user_pool_domain" "main" { */
-/*   domain          = "auth.${var.root_domain}" */
-/*   certificate_arn = var.acm_sub_arn */
-/*   user_pool_id    = aws_cognito_user_pool.main.id */
-/* } */
+resource "aws_cognito_user_pool_domain" "main" {
+  domain       = "test-cogn-social-login-bun"
+  user_pool_id = aws_cognito_user_pool.main.id
+}
 
 resource "aws_cognito_user_pool_client" "main" {
   name            = "${var.prefix}-client"
@@ -44,11 +43,30 @@ resource "aws_cognito_user_pool_client" "main" {
   ]
   allowed_oauth_flows = ["code"]
   explicit_auth_flows = [
+    "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
   ]
   supported_identity_providers = [
-    "COGNITO"
+    "COGNITO",
+    "Google"
   ]
   allowed_oauth_scopes                 = ["openid"]
   allowed_oauth_flows_user_pool_client = true
+}
+
+resource "aws_cognito_identity_provider" "google_provider" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    authorize_scopes = "email"
+    client_id        = var.google_client_id
+    client_secret    = var.google_client_secret
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+  }
 }

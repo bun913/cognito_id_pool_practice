@@ -27,7 +27,9 @@ locals {
 module "auth" {
   source = "./modules/auth/"
 
-  prefix = local.default_prefix
+  prefix               = local.default_prefix
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
 
   tags = var.tags
 }
